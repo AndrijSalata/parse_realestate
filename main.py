@@ -10,7 +10,7 @@ counter = 0
 
 def write_to_file(list_input):
     # The scraped info will be written to a CSV here.
-    with open("/data/flat_prices/allflats.txt", "a") as file:  # Open the csv file.
+    with open(f"/data/flat_prices/allflats_{str(datetime.now().date())}.txt", "a") as file:  # Open the csv file.
         print(f'{str(list_input)}\n')
         file.write(f'{json.dumps(list_input)}\n')
     global counter
@@ -24,41 +24,44 @@ def scrape(soup, item_class, sleep=1):  # Takes the driver and the subdomain for
 
     # Iterate over each book article tag
     for each_add in adds:
-        features = {'datetime': str(datetime.now().date())}
-        features.update({'id': each_add.get('id')})
-        features.update({'url': each_add.find('a', class_='list__item__content__title__name').get('href')})
-        features.update({'description': each_add.find('div', class_='ogl__description').text})
-        features.update({'price': each_add.find('div', class_='list__item__picture__price').p.text})
-        features.update({'price_m': each_add.find('p', class_="list__item__details__info details--info--price").text})
-        details = each_add.find_all('div', class_="list__item__details__icons__wrap")
-        for d in details:
-            p = d.find_all('p')
-            features.update({p[0].text: p[1].text})
+        try:
+            features = {'datetime': str(datetime.now().date())}
+            features.update({'id': each_add.get('id')})
+            features.update({'url': each_add.find('a', class_='list__item__content__title__name').get('href')})
+            features.update({'description': each_add.find('div', class_='ogl__description').text})
+            features.update({'price': each_add.find('div', class_='list__item__picture__price').p.text})
+            features.update({'price_m': each_add.find('p', class_="list__item__details__info details--info--price").text})
+            details = each_add.find_all('div', class_="list__item__details__icons__wrap")
+            for d in details:
+                p = d.find_all('p')
+                features.update({p[0].text: p[1].text})
 
-        # Get details
-        html_text = requests.get(features['url']).text
-        soup_item = BeautifulSoup(html_text, 'html.parser')
-        item_details = soup_item.find_all('div', class_='oglDetails panel')[1]
+            # Get details
+            html_text = requests.get(features['url']).text
+            soup_item = BeautifulSoup(html_text, 'html.parser')
+            item_details = soup_item.find_all('div', class_='oglDetails panel')[1]
 
-        list_details = item_details.findChildren('div', recursive=False)
-        for c in list_details:
-            item_key = c['class'][-1]
-            item_value = c.find('span', class_='oglField__value')
-            if item_value:
-                features.update({re.sub('oglField--', '', c['class'][-1]): item_value.text})
-            elif item_key == 'oglField--address':
-                map = c.find('a', class_='link__map android_micro_action_location')
-                if map:
-                    features.update({'map': map.get('href')})
-            elif item_key == 'oglField--array':
-                features.update({'more': [m.span.text for m in c.find_all('li', class_='oglFieldList__item')]})
+            list_details = item_details.findChildren('div', recursive=False)
+            for c in list_details:
+                item_key = c['class'][-1]
+                item_value = c.find('span', class_='oglField__value')
+                if item_value:
+                    features.update({re.sub('oglField--', '', c['class'][-1]): item_value.text})
+                elif item_key == 'oglField--address':
+                    map = c.find('a', class_='link__map android_micro_action_location')
+                    if map:
+                        features.update({'map': map.get('href')})
+                elif item_key == 'oglField--array':
+                    features.update({'more': [m.span.text for m in c.find_all('li', class_='oglFieldList__item')]})
 
-        # Invoke the write_to_csv function
-        write_to_file(features)
-        time.sleep(sleep)
+            # Invoke the write_to_csv function
+            write_to_file(features)
+            time.sleep(sleep)
+        except:
+            pass
 
 
-def browse_and_scrape(seed_url, page_number=257):
+def browse_and_scrape(seed_url, page_number=0):
     # Page_number from the argument gets formatted in the URL & Fetched
     formatted_url = seed_url.format(str(page_number))
     print(f"Current page: {page_number}")
@@ -89,8 +92,8 @@ def browse_and_scrape(seed_url, page_number=257):
             scrape(soup, 'list__item')  # The script exits here
             return True
         return True
-    except Exception as e:
-        return e
+    except:
+        pass
 
 
 if __name__ == '__main__':
