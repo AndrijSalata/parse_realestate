@@ -11,7 +11,7 @@ setup(
         'pandas',
         'tqdm',
     ],
-    entry_points = {
+    entry_points={
         'console_scripts': [
             'parse_realestate = parse_realestate:main',
         ],
