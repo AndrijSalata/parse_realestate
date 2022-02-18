@@ -8,9 +8,9 @@ from tqdm.notebook import tqdm
 
 counter = 0
 
-def write_to_file(list_input):
+def write_to_file(list_input, file_name=f"/data/flat_prices/allflats_{str(datetime.now().date())}.txt"):
     # The scraped info will be written to a CSV here.
-    with open(f"/data/flat_prices/allflats_{str(datetime.now().date())}.txt", "a") as file:  # Open the csv file.
+    with open(file_name, "a") as file:  # Open the csv file.
         print(f'{str(list_input)}\n')
         file.write(f'{json.dumps(list_input)}\n')
     global counter
@@ -18,7 +18,7 @@ def write_to_file(list_input):
     print(f'{counter} / {results_count}')
 
 
-def scrape(soup, item_class, sleep=1):  # Takes the driver and the subdomain for concats as params
+def scrape(soup, item_class, sleep=1, file_name=f"/data/flat_prices/allflats_{str(datetime.now().date())}.txt"):  # Takes the driver and the subdomain for concats as params
     # Find the elements of the article tag
     adds = soup.find_all("div", class_=item_class)
 
@@ -55,13 +55,13 @@ def scrape(soup, item_class, sleep=1):  # Takes the driver and the subdomain for
                     features.update({'more': [m.span.text for m in c.find_all('li', class_='oglFieldList__item')]})
 
             # Invoke the write_to_csv function
-            write_to_file(features)
+            write_to_file(features, file_name=file_name)
             time.sleep(sleep)
         except:
             pass
 
 
-def browse_and_scrape(seed_url, page_number=0):
+def browse_and_scrape(seed_url, page_number=0, file_name=f"/data/flat_prices/allflats_{str(datetime.now().date())}.txt"):
     # Page_number from the argument gets formatted in the URL & Fetched
     formatted_url = seed_url.format(str(page_number))
     print(f"Current page: {page_number}")
@@ -87,7 +87,7 @@ def browse_and_scrape(seed_url, page_number=0):
             time.sleep(1)
             page_number += 1
             # Recursively invoke the same function with the increment
-            browse_and_scrape(seed_url, page_number)
+            browse_and_scrape(seed_url, page_number, file_name=file_name)
         else:
             scrape(soup, 'list__item')  # The script exits here
             return True
@@ -96,11 +96,10 @@ def browse_and_scrape(seed_url, page_number=0):
         pass
 
 
-if __name__ == '__main__':
-    # seed_url = 'https://ogloszenia.trojmiasto.pl/nieruchomosci/ai,_650000,e1i,58_1_87_7_31,ikl,101_106,qi,50_,ri,3_,wi,100_200_230_250_260_220_240_210,o2,0.html?strona={}'
-    seed_url = 'https://ogloszenia.trojmiasto.pl/nieruchomosci/ikl,101_106,nf1i,1_2_3,wi,100_200_230_250_260_220_240_210,o2,0.html' # - okolicy
+def main():
+    # parse Tricity
     seed_url = 'https://ogloszenia.trojmiasto.pl/nieruchomosci/f1i,1_2_3,ikl,101_106,o2,0.html'
-    print("Web scraping has begun")
+    print("Web scraping of Tricity has begun")
 
     # get total count
     html_text = requests.get(seed_url).text
@@ -108,11 +107,29 @@ if __name__ == '__main__':
     mx = soup.find('div', class_='form-heading__desc')
     results_count = (int(re.sub('[^0-9]', '', mx.find('span').text)))
 
-
-    result = browse_and_scrape(seed_url+'?strona={}')
+    result = browse_and_scrape(seed_url + '?strona={}', file_name=f"/data/flat_prices/allflats_{str(datetime.now().date())}.txt")
     if result:
         print("Web scraping is now complete!")
     else:
         print(f"Oops, That doesn't seem right!!! - {result}")
+
+    # parse suburbans
+    seed_url = 'https://ogloszenia.trojmiasto.pl/nieruchomosci/ikl,101_106,nf1i,1_2_3,wi,100_200_230_250_260_220_240_210,o2,0.html'  # - okolicy
+
+    # get total count
+    html_text = requests.get(seed_url).text
+    soup = BeautifulSoup(html_text, "html.parser")
+    mx = soup.find('div', class_='form-heading__desc')
+    results_count = (int(re.sub('[^0-9]', '', mx.find('span').text)))
+
+    result = browse_and_scrape(seed_url + '?strona={}', file_name=f"/data/flat_prices/allflats_sub_{str(datetime.now().date())}.txt")
+    if result:
+        print("Web scraping is now complete!")
+    else:
+        print(f"Oops, That doesn't seem right!!! - {result}")
+
+
+if __name__ == '__main__':
+    main()
 
 
