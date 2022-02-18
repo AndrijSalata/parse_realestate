@@ -10,6 +10,7 @@ setup(
         'BeautifulSoup4',
         'pandas',
         'tqdm',
+        'build'
     ],
     entry_points={
         'console_scripts': [
