@@ -58,7 +58,7 @@ def scrape(soup, item_class, sleep=1, file_name=f"/data/flat_prices/allflats_{st
             write_to_file(features, file_name=file_name)
             time.sleep(sleep)
         except:
-            print('page was not parsed')
+            print(f"page {features['url']} was not parsed")
 
 
 def browse_and_scrape(seed_url, page_number=0, file_name=f"/data/flat_prices/allflats_{str(datetime.now().date())}.txt"):
