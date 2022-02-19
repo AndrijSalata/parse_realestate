@@ -135,6 +135,10 @@ def main():
         print(f"Oops, That doesn't seem right!!! - {result}")
 
 
+def run():
+    main()
+
+
 if __name__ == '__main__':
     main()
 
