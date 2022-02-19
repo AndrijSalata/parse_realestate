@@ -5,7 +5,6 @@ setup(
     version='0.1',
     py_modules=['main.py'],
     install_requires=[
-        'Click',
         'requests',
         'BeautifulSoup4',
         'pandas',
