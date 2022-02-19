@@ -7,6 +7,8 @@ import json
 from tqdm.notebook import tqdm
 
 counter = 0
+results_count = 0
+
 
 def write_to_file(list_input, file_name=f"/data/flat_prices/allflats_{str(datetime.now().date())}.txt"):
     # The scraped info will be written to a CSV here.

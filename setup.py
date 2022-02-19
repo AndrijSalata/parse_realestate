@@ -12,7 +12,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'parse_realestate = parse_realestate.__main__:main',
+            'parse_realestate = parse_realestate.main:main',
         ],
     }
 )
