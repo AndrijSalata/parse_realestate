@@ -28,7 +28,6 @@ def scrape(soup, item_class, sleep=1, file_name=f"/data/flat_prices/allflats_{st
             features = {'datetime': str(datetime.now().date())}
             features.update({'id': each_add.get('id')})
             features.update({'url': each_add.find('a', class_='list__item__content__title__name').get('href')})
-            features.update({'description': each_add.find('div', class_='ogl__description').text})
             features.update({'price': each_add.find('div', class_='list__item__picture__price').p.text})
             features.update({'price_m': each_add.find('p', class_="list__item__details__info details--info--price").text})
             details = each_add.find_all('div', class_="list__item__details__icons__wrap")
@@ -41,6 +40,7 @@ def scrape(soup, item_class, sleep=1, file_name=f"/data/flat_prices/allflats_{st
             soup_item = BeautifulSoup(html_text, 'html.parser')
             item_details = soup_item.find_all('div', class_='oglDetails panel')[1]
 
+            features.update({'description': soup_item.find('div', class_='ogl__description').text})
             list_details = item_details.findChildren('div', recursive=False)
             for c in list_details:
                 item_key = c['class'][-1]
@@ -58,7 +58,7 @@ def scrape(soup, item_class, sleep=1, file_name=f"/data/flat_prices/allflats_{st
             write_to_file(features, file_name=file_name)
             time.sleep(sleep)
         except:
-            pass
+            print('page was not parsed')
 
 
 def browse_and_scrape(seed_url, page_number=0, file_name=f"/data/flat_prices/allflats_{str(datetime.now().date())}.txt"):
@@ -100,6 +100,9 @@ def main():
     # parse Tricity
     seed_url = 'https://ogloszenia.trojmiasto.pl/nieruchomosci/f1i,1_2_3,ikl,101_106,o2,0.html'
     print("Web scraping of Tricity has begun")
+    global results_count
+    global counter
+    counter = 0
 
     # get total count
     html_text = requests.get(seed_url).text
@@ -116,6 +119,7 @@ def main():
     # parse suburbans
     seed_url = 'https://ogloszenia.trojmiasto.pl/nieruchomosci/ikl,101_106,nf1i,1_2_3,wi,100_200_230_250_260_220_240_210,o2,0.html'  # - okolicy
 
+    counter = 0
     # get total count
     html_text = requests.get(seed_url).text
     soup = BeautifulSoup(html_text, "html.parser")
